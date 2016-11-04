@@ -30,4 +30,17 @@ If the site is down, an error message describing the issue should appear in the 
 
 If the data file for today’s date already exists, your program should overwrite the file.
 
+Don't forget to document your code!
+
+*/
+
+/*
+
+Use a linting tool like ESLint to check your code for syntax errors and to ensure general code quality.
+You should be able to run npm run lint to check your code.
+
+When an error occurs log it to a file scraper-error.log . 
+It should append to the bottom of the file with a time stamp and error e.g. [Tue Feb 16 2016 10:02:12 GMT-0800 (PST)] <error message>
+Project Resources
+
 */
