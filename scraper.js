@@ -55,6 +55,18 @@ function getDate() {
 
 }
 
+// Function that handles errors and logs them to a file.
+var logError = function(error, url) {
+	
+	console.log("There was an error trying to reach " + url);
+	console.log("Error message: " + error);
+	var errorData = "\n" + getDate() + "-" + getTime() + "-" + error;
+	fs.appendFile("scraper-error.log", errorData, (err) => {
+	  if (err) throw err;
+	  console.log('The error has been recorded in scraper-error.log');
+	});
+};
+
 // Using File System module, check for a folder called 'data'. If it doesn't exist, create the folder.
 if (fs.existsSync("./data") === false) {
 
@@ -65,10 +77,10 @@ if (fs.existsSync("./data") === false) {
 // Using HTTP module, make a GET request to website homepage
 http.get(homePageURL, (response) => {
 
-	// If the response is not successful, log an error message to the console.
+	// If the response is not successful, log an error message to the console and an error log.
 	if (response.statusCode !== 200) {
 
-		console.log("Error! The response status code is " + response.statusCode + ". Cannot access the homepage!");	
+		logError(response.statusMessage, homePageURL);
 
 	// If the response is successful, pass the webpage's HTML to cheerio.
 	} else if (response.statusCode == 200) {
@@ -92,10 +104,10 @@ http.get(homePageURL, (response) => {
 									
 						var requestURL = homePageURL + url;
 
-						// If the response is not successful, log an error message to the console.
+						// If the response is not successful, log an error message to the console and an error log.
 						if (response.statusCode !== 200) {
 
-							console.log("Error! The response status code is " + response.statusCode + ". The site you visited was http://www.shirts4mike.com/" + url);
+							logError(response.statusMessage, requestURL);
 
 						} else if (response.statusCode == 200) {
 
@@ -129,10 +141,10 @@ http.get(homePageURL, (response) => {
     				// If the link doesn't contain '?id=', make a GET request to that link
     				http.get(homePageURL + url, (response) => {
 
-    					// If the response is not successful, log an error message to the console.
+    					// If the response is not successful, log an error message to the console and an error log.
     					if (response.statusCode !== 200) {
 
-    						console.log("Error! The response status code is " + response.statusCode + ".");
+    						logError(response.statusMessage, homePageURL + url);
 
     					} else if (response.statusCode == 200) {
 
@@ -156,10 +168,10 @@ http.get(homePageURL, (response) => {
 
 					    				http.get(requestURL, (response) => {
 
-					    					// If the response is not successful, log an error message to the console.
+					    					// If the response is not successful, log an error message to the console and an error log.
 											if (response.statusCode !== 200) {
 
-												console.log("Error! The response status code is " + response.statusCode + ". The site you visited was http://www.shirts4mike.com/" + url);
+												logError(response.statusMessage, requestURL);
 
 											} else if (response.statusCode == 200) {
 
