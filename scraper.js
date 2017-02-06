@@ -8,11 +8,12 @@ var fs = require("fs");
 var http = require("http");
 var cheerio = require("cheerio");
 // I chose to use cheerio to scrape content from the site because its selector implementation is 
-// identical to jQuery, which I am familiar with. Furthermore, it is a popular package with builds that 
-// are currently passing.  
+// identical to jQuery, which I am familiar with. It has by far the most number of downloads, along with builds tests 
+// are currently passing. Though the version is only 0.22.0, there has been 58 releases.   
 var json2csv = require("json2csv");
 // I chose to use json2csv to create a CSV file that stores the product data because it is also a popular
-// and active package with builds that are currently passing.
+// and active package with build tests that are currently passing. It is well documented, which made for a
+// more enjoyable learning experience.
 
 /* Global Variables */
 var homePageURL = "http://www.shirts4mike.com/";
