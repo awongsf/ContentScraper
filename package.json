@@ -1,0 +1,30 @@
+{
+  "name": "content_scraper",
+  "version": "0.0.1",
+  "description": "A web scraper",
+  "main": "scraper.js",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "json2csv": "^3.7.3"
+  },
+  "devDependencies": {
+    "eslint": "^3.15.0",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint scraper.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awongsf/ContentScraper.git"
+  },
+  "author": "Andrew Wong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/awongsf/ContentScraper/issues"
+  },
+  "homepage": "https://github.com/awongsf/ContentScraper#readme"
+}

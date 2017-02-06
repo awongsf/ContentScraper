@@ -1,46 +1,189 @@
 /* CONTENT SCRAPER */
 
+/* Node Modules */
 var fs = require("fs");
+var http = require("http");
+var cheerio = require("cheerio");
+var json2csv = require("json2csv");
 
-// Check for folder called 'data'. If it doesn't exist, create the folder.
-if (fs.existsSync("./data") === false) {
-	fs.mkdirSync("./data");
+/* Global Variables */
+var homePageURL = "http://www.shirts4mike.com/";
+var productPageLinks = [];
+var columnHeaders = ["Title", "Price", "ImageURL", "URL", "Time"];
+var scrapeData = [];
+
+// Function that gets the current time.
+function getTime() {
+
+    var time = new Date();
+
+    var hour = time.getHours();
+    hour = (hour < 10 ? "0" : "") + hour;
+
+    var min  = time.getMinutes();
+    min = (min < 10 ? "0" : "") + min;
+
+    var sec  = time.getSeconds();
+    sec = (sec < 10 ? "0" : "") + sec;
+
+    return hour + ":" + min + ":" + sec;
+
 }
 
-/*
+// Function that gets the current date.
+function getDate() {
 
-Create a scraper.js file. This should be the file that runs every day.
+	var date = new Date();
 
-The scraper should create a folder called data, if a folder called data doesn't already exist (it should check for the folder).
+	var year = date.getFullYear();
 
-The information from the site you scrape should be stored in a CSV file named after today's date: 2016-01-29.csv.
+    var month = date.getMonth() + 1;
+    month = (month < 10 ? "0" : "") + month;
 
-Use a third party npm package to scrape content from the site. As part of this assignment, you'll need to explain why you chose this package.
+    var day  = date.getDate();
+    day = (day < 10 ? "0" : "") + day;
 
-The scraper should be able to visit the website http://shirts4mike.com and follow links to all t-shirts.
+    return year + "-" + month + "-" + day;
 
-The scraper should get the price, title, url and image url from the product page and save it in the CSV.
+}
 
-Use a third party npm package to create an CSV file. As part of this assignment, you’ll need to explain why you chose this package.
+// Using File System module, check for a folder called 'data'. If it doesn't exist, create the folder.
+if (fs.existsSync("./data") === false) {
 
-The column headers should be in this order: Title, Price, ImageURL, URL and Time. ‘Time’ should be the time the scrape happened. 
-The columns must be in order (if we were really populating a database, the columns would need to be in order correctly populate the database).
+	fs.mkdirSync("./data");
 
-If the site is down, an error message describing the issue should appear in the console. You can test your error by disabling the wifi on your computer.
+}
 
-If the data file for today’s date already exists, your program should overwrite the file.
+// 
+http.get(homePageURL, (response) => {
 
-Don't forget to document your code!
+	if (response.statusCode !== 200) {
 
-*/
+		console.log("Error! The response status code is " + response.statusCode + ". Cannot access the home page!");	
 
-/*
+	} else if (response.statusCode == 200) {
+				
+		response.on("data", (chunk) => {
 
-Use a linting tool like ESLint to check your code for syntax errors and to ensure general code quality.
-You should be able to run npm run lint to check your code.
+    		var $ = cheerio.load(chunk);
 
-When an error occurs log it to a file scraper-error.log . 
-It should append to the bottom of the file with a time stamp and error e.g. [Tue Feb 16 2016 10:02:12 GMT-0800 (PST)] <error message>
-Project Resources
+    		$("a[href*='.php']").each(function(){
 
-*/
+    			var url = $(this).attr("href");
+
+    			if (url.includes("?id=")) {
+
+    				productPageLinks.push(url);
+
+    				http.get(homePageURL + url, (response) => {
+									
+						var requestURL = homePageURL + url;
+
+						if (response.statusCode !== 200) {
+
+							console.log("Error! The response status code is " + response.statusCode + ". The site you visited was http://www.shirts4mike.com/" + url);
+
+						} else if (response.statusCode == 200) {
+
+							response.on("data", (chunk) => {
+
+								var $ = cheerio.load(chunk);
+
+								var Title = $("title").text();
+								var Price = $(".price").text();
+								var ImageURL = $(".shirt-picture > span > img").attr("src");
+								var Time = getTime();
+								var shirtData = {};
+
+								shirtData.Title = Title;
+								shirtData.Price = Price;
+								shirtData.ImageURL = homePageURL + ImageURL;
+								shirtData.URL = requestURL;
+								shirtData.Time = Time;
+								scrapeData.push(shirtData);
+
+								var csv = json2csv({ data: scrapeData, fields: columnHeaders });
+								 
+								fs.writeFile("./data/" + getDate() + ".csv", csv, function(error) {
+								  if (error) throw error;
+								  console.log("file saved");
+								});
+							});
+						}
+					});
+
+    			} else {
+
+    				http.get(homePageURL + url, (response) => {
+
+    					if (response.statusCode !== 200) {
+
+    						console.log("Error! The response status code is " + response.statusCode + ".");
+
+    					} else if (response.statusCode == 200) {
+
+    						response.on("data", (chunk) => {
+
+    							var $ = cheerio.load(chunk);
+
+    							$("a[href*='.php']").each(function(){
+
+    								var url = $(this).attr("href");
+
+					    			if (url.includes("?id=") && productPageLinks.indexOf(url) === -1) {
+					    				
+					    				productPageLinks.push(url);
+
+					    				var requestURL = homePageURL + url;
+
+					    				http.get(requestURL, (response) => {
+
+											if (response.statusCode !== 200) {
+
+												console.log("Error! The response status code is " + response.statusCode + ". The site you visited was http://www.shirts4mike.com/" + url);
+
+											} else if (response.statusCode == 200) {
+
+												response.on("data", (chunk) => {
+
+													var $ = cheerio.load(chunk);
+
+													var Title = $("title").text();
+													var Price = $(".price").text();
+													var ImageURL = $(".shirt-picture > span > img").attr("src");
+													var Time = getTime();
+													var shirtData = {};
+
+													shirtData.Title = Title;
+													shirtData.Price = Price;
+													shirtData.ImageURL = homePageURL + ImageURL;
+													shirtData.URL = requestURL;
+													shirtData.Time = Time;
+													scrapeData.push(shirtData);
+
+													var csv = json2csv({ data: scrapeData, fields: columnHeaders });
+													 
+													fs.writeFile("./data/" + getDate() + ".csv", csv, function(error) {
+													  if (error) throw error;
+													  console.log("file saved");
+													});
+												});
+											}
+										});
+					    			}
+
+					    		});
+						    		
+    						});
+
+    					}
+
+    				});
+
+    			}
+
+    		});
+    		
+  		});
+	}
+});
