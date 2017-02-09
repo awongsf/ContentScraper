@@ -224,4 +224,13 @@ http.get(homePageURL, (response) => {
     		
   		});
 	}
+// If there is a problem with the initial GET request to website hompage,
+// log an error message to the console and to an error log.
+}).on('error', (e) => {
+	console.log('There was a problem with the initial GET request to shirts4mike homepage.');
+	var errorData = "\n" + getDate() + "-" + getTime() + "-" + e.message;
+	fs.appendFile("scraper-error.log", errorData, (err) => {
+	  if (err) throw err;
+	  console.log('The error has been recorded in scraper-error.log');
+	});
 });
